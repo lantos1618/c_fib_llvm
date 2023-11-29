@@ -25,7 +25,9 @@ int llvm_fib_iter()
 
     // Create Basic Blocks
     LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(context, fib_func, "entry");
+    LLVMBasicBlockRef loop_header = LLVMAppendBasicBlockInContext(context, fib_func, "loop_header");
     LLVMBasicBlockRef iterative_case = LLVMAppendBasicBlockInContext(context, fib_func, "iterative_case");
+    LLVMBasicBlockRef exit = LLVMAppendBasicBlockInContext(context, fib_func, "exit"); // New exit block
 
     // Function Arguments
     LLVMValueRef n = LLVMGetParam(fib_func, 0);
@@ -44,9 +46,13 @@ int llvm_fib_iter()
     LLVMValueRef i = LLVMBuildAlloca(builder, LLVMInt32TypeInContext(context), "i");
     LLVMBuildStore(builder, LLVMConstInt(LLVMInt32TypeInContext(context), 2, 0), i); // Start from 2
 
+    // Branch to loop_header
+    LLVMBuildBr(builder, loop_header);
+
     // Loop Header
+    LLVMPositionBuilderAtEnd(builder, loop_header);
     LLVMValueRef loop_condition = LLVMBuildICmp(builder, LLVMIntSLT, LLVMBuildLoad2(builder, LLVMInt32TypeInContext(context), i, "i"), n, "loop_cond");
-    LLVMBuildCondBr(builder, loop_condition, iterative_case, entry);
+    LLVMBuildCondBr(builder, loop_condition, iterative_case, exit); // Branch to exit block when loop condition is false
 
     // Iterative Case Block
     LLVMPositionBuilderAtEnd(builder, iterative_case);
@@ -64,15 +70,17 @@ int llvm_fib_iter()
     LLVMBuildStore(builder, next_i, i);
 
     // Branch back to the loop header
-    LLVMBuildBr(builder, entry);
+    LLVMBuildBr(builder, loop_header);
 
     // Return the result
-    LLVMPositionBuilderAtEnd(builder, entry);
+    LLVMPositionBuilderAtEnd(builder, exit); // Position builder at the end of exit block
     LLVMBuildRet(builder, LLVMBuildLoad2(builder, LLVMInt32TypeInContext(context), fib_2, ""));
 
     // Verify and Compile
     char *error = NULL;
     LLVMVerifyModule(module, LLVMAbortProcessAction, &error);
+
+    LLVMDumpModule(module);
 
     LLVMLinkInMCJIT();
     LLVMInitializeNativeTarget();
