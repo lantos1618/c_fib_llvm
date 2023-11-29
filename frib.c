@@ -40,7 +40,7 @@ unsigned long long fibonacci_memoization(int n, unsigned long long* memo) {
     return memo[n];
 }
 
-
+// Memoized Iterative Fibonacci
 unsigned long long fibonacci_memoized_iterative(int n) {
     if (n <= 1) {
         return n;
@@ -65,7 +65,7 @@ unsigned long long fibonacci_memoized_iterative(int n) {
 }
 
 // clang -o frib frib.c && ./frib
-int main() {
+int frib() {
     int n = 50; // You can change this value to test different Fibonacci numbers
     
     clock_t start, end;
