@@ -1,0 +1,8 @@
+# Ignore all files
+*
+
+# But don't ignore files with extensions
+!*.*
+
+# Ignore OS generated files
+.DS_Store
